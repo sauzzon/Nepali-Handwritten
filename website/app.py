@@ -1,12 +1,22 @@
 from flask import Flask, render_template, request
+import base64
+from PIL import Image
+from io import BytesIO
 import os
 import cv2
+from itsdangerous import base64_decode
 import numpy as np
 import tensorflow as tf
 
 #character classes
-Classes = ['ana', 'ath', 'ba', 'bha', 'cha', 'char', 'chha', 'chhyya', 'da', 'dda', 'ddha', 'dha', 'dui', 'ek', 'ga', 'gha', 'gya', 'ha', 'ja', 'jha', 'ka', 'kha',
-           'kna', 'la', 'ma', 'na', 'nau', 'pa', 'pach', 'pha', 'ra', 'sat', 'sha1', 'sha2', 'sha3', 'sunya', 'ta', 'tha', 'tin', 'tra', 'tta', 'ttha', 'wo', 'xa', 'ya', 'yan']
+Classes = ['ण', 'ath', 'ब', 'भ', 'च', 
+'char', 'छ', 'क्ष', 'द', 'ड', 'ढ', 
+'ध', 'dui', 'ek', 'ग', 'घ', 'ज्ञ', 'ह', 
+'ज', 'झ', 'क', 'ख',
+'kna', 'ल', 'म', 'न', 'nau', 'प', 'pach', 
+'फ', 'र', 'sat', 'श', 'ष', 'स', 
+'sunya', 'ट', 'ठ', 'tin', 'त्र', 'त', 
+'थ', 'व', 'xa', 'य', 'ञ']
 
 app = Flask(__name__)
 
@@ -23,9 +33,30 @@ def hello_world():
 
 def predict():
     IMG_SIZE = 32
-    imageFile=request.files['imageFile']
-    image_path = os.path.join(app.config['IMAGE_FOLDER'], imageFile.filename )
-    imageFile.save(image_path)
+    if not request.files.get('imageFile'):
+        imageFileEncoded=request.values.get('imageFileEncoded')
+        if not imageFileEncoded:
+            return render_template('index.html',error="No File Choosen")
+        starter=imageFileEncoded.find(',')
+        image_data = imageFileEncoded[starter+1:]
+        image_data = bytes(image_data, encoding="ascii")
+        img = Image.open(BytesIO(base64.b64decode(image_data)))
+        
+        filename = 'canvasimage.png'  # I assume you have a way of picking unique filenames
+
+        image_path = os.path.join(app.config['IMAGE_FOLDER'], filename )
+        img.save(image_path, 'png')
+        
+        if not imageFileEncoded:
+            return render_template('index.html',error="No File Choosen")
+    else:
+        imageFile=request.files.get('imageFile')
+        if not imageFile:
+            return render_template('index.html',error="No File Choosen")
+        image_path = os.path.join(app.config['IMAGE_FOLDER'], imageFile.filename )
+        #save the choosen file to the server compulsory coz cv2 is reading from this path
+        imageFile.save(image_path)
+
     #loading model
     model1 = tf.keras.models.load_model('../nhwcr.hdf5')
     #prediction on our image

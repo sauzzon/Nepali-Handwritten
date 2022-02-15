@@ -1,0 +1,24 @@
+#myCanvas {
+  cursor: crosshair;
+  width: 256px;
+  height: 256px;
+}
+.row {
+  display: flex;
+}
+
+.column {
+  float: left;
+}
+
+.left {
+  width: 50%;
+}
+
+.middle {
+  width: 10%;
+}
+
+.right {
+  width: 40%;
+}
