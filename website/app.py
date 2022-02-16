@@ -57,8 +57,6 @@ def predict():
         #save the choosen file to the server compulsory coz cv2 is reading from this path
         imageFile.save(image_path)
 
-    #loading model
-    model1 = tf.keras.models.load_model('../nhwcr.hdf5')
     #prediction on our image
     img = cv2.imread(image_path)
     img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -71,4 +69,7 @@ def predict():
     return render_template('index.html', character=pred, imagepath=image_path)
 
 if __name__ == '__main__':
+    #loading and compiling model
+    model1 = tf.keras.models.load_model('../nhwcr.hdf5')
+    model1.compile(loss="sparse_categorical_crossentropy",optimizer="adam",metrics=['accuracy'])
     app.run(port=3000, debug=True)
